@@ -77,16 +77,122 @@
             </Setter>
         </Style>
 
-        <!-- Styled Dark ComboBox for Time Window -->
-        <Style x:Key="TimeWindowComboBoxStyle" TargetType="ComboBox">
+        <!-- ComboBox Item Style -->
+        <Style x:Key="TimeWindowComboBoxItemStyle" TargetType="ComboBoxItem">
             <Setter Property="Foreground" Value="#E2E8F0" />
-            <Setter Property="Background" Value="#161B22" />
-            <Setter Property="BorderBrush" Value="{Binding CurrentTheme.BorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="8,3" />
             <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="10,6" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder" 
+                                Background="Transparent" 
+                                CornerRadius="6" 
+                                Padding="{TemplateBinding Padding}" 
+                                Margin="2,1">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#1E293B" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#334155" />
+                                <Setter Property="Foreground" Value="{Binding CurrentTheme.AccentBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ToggleButton for ComboBox face -->
+        <ControlTemplate x:Key="ComboBoxToggleButtonTemplate" TargetType="ToggleButton">
+            <Border x:Name="ButtonBorder"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="8"
+                    Padding="{TemplateBinding Padding}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="1" Text="▾" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center" Margin="6,0,0,0" />
+                </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{Binding CurrentTheme.AccentBrush}" />
+                    <Setter TargetName="ButtonBorder" Property="Background" Value="#1E293B" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- Styled Dark ComboBox for Time Window matching FilterBtnStyle -->
+        <Style x:Key="TimeWindowComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#E2E8F0" />
+            <Setter Property="Background" Value="{Binding CurrentTheme.CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{Binding CurrentTheme.BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="9,4" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="ItemContainerStyle" Value="{StaticResource TimeWindowComboBoxItemStyle}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton"
+                                          Template="{StaticResource ComboBoxToggleButtonTemplate}"
+                                          Focusable="False"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          Padding="{TemplateBinding Padding}" />
+                            
+                            <ContentPresenter x:Name="ContentSite"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              Margin="9,4,22,4"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left" />
+
+                            <Popup x:Name="Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Border x:Name="DropDownBorder"
+                                        Background="#0F172A"
+                                        BorderBrush="{Binding CurrentTheme.BorderBrush}"
+                                        BorderThickness="1.2"
+                                        CornerRadius="8"
+                                        Padding="3"
+                                        Margin="0,4,0,0"
+                                        MinWidth="{TemplateBinding ActualWidth}">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="12" ShadowDepth="3" Direction="270" Color="#000000" Opacity="0.75" />
+                                    </Border.Effect>
+                                    <ScrollViewer SnapsToDevicePixels="True" MaxHeight="200">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
@@ -114,58 +220,44 @@
                     <!-- Drag handle icon -->
                     <TextBlock Text="⋮⋮" FontSize="11" Foreground="#475569" VerticalAlignment="Center" Margin="2,0,6,0" ToolTip="Déplacer" />
 
-                    <!-- CPU Single-Line Capsule -->
-                    <Border Background="{Binding CurrentTheme.CardBackgroundBrush}" 
-                            BorderBrush="{Binding CurrentTheme.BorderBrush}" 
-                            BorderThickness="1" 
-                            CornerRadius="8" 
-                            Padding="8,3" 
-                            Margin="0,0,4,0">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Ellipse Width="6" Height="6" Margin="0,0,5,0"
-                                     Fill="{Binding CpuTempStatusColor, Converter={StaticResource StringToBrush}}" />
-                            <TextBlock Text="CPU" FontWeight="Bold" FontSize="10.5" Foreground="{Binding CurrentTheme.CpuBrush}" Margin="0,0,6,0" />
-                            <TextBlock Text="{Binding CpuTemp, StringFormat='{}{0:0.#}°C'}" 
-                                       FontSize="11.5" FontWeight="Bold" Foreground="#F8FAFC" 
-                                       ToolTip="Température CPU Package / SoC" />
-                            <TextBlock Text="•" Foreground="#475569" Margin="5,0" />
-                            <TextBlock Text="{Binding CpuClockGhz, StringFormat='{}{0:0.00} GHz'}" 
-                                       FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" 
-                                       ToolTip="Fréquence CPU" />
-                            <TextBlock Text="•" Foreground="#475569" Margin="5,0" />
-                            <TextBlock Text="{Binding CpuLoad, StringFormat='{}{0:0}%'}" 
-                                       FontSize="10" Foreground="#64748B" 
-                                       ToolTip="Utilisation CPU" />
-                        </StackPanel>
-                    </Border>
+                    <!-- CPU Info (Clean without inner border) -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,8,0">
+                        <Ellipse Width="6" Height="6" Margin="0,0,5,0"
+                                 Fill="{Binding CpuTempStatusColor, Converter={StaticResource StringToBrush}}" />
+                        <TextBlock Text="CPU" FontWeight="Bold" FontSize="11" Foreground="{Binding CurrentTheme.CpuBrush}" Margin="0,0,6,0" />
+                        <TextBlock Text="{Binding CpuTemp, StringFormat='{}{0:0.#}°C'}" 
+                                   FontSize="12" FontWeight="Bold" Foreground="#F8FAFC" 
+                                   ToolTip="Température CPU Package / SoC" />
+                        <TextBlock Text="•" Foreground="#475569" Margin="6,0" />
+                        <TextBlock Text="{Binding CpuClockGhz, StringFormat='{}{0:0.00} GHz'}" 
+                                   FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" 
+                                   ToolTip="Fréquence CPU" />
+                        <TextBlock Text="•" Foreground="#475569" Margin="6,0" />
+                        <TextBlock Text="{Binding CpuLoad, StringFormat='{}{0:0}%'}" 
+                                   FontSize="10.5" Foreground="#64748B" 
+                                   ToolTip="Utilisation CPU" />
+                    </StackPanel>
 
-                    <!-- Separator -->
-                    <Rectangle Width="1" Height="14" Fill="{Binding CurrentTheme.BorderBrush}" Margin="3,0" />
+                    <!-- Subtle separator -->
+                    <Rectangle Width="1" Height="14" Fill="{Binding CurrentTheme.BorderBrush}" Margin="2,0,8,0" Opacity="0.5" />
 
-                    <!-- GPU Single-Line Capsule -->
-                    <Border Background="{Binding CurrentTheme.CardBackgroundBrush}" 
-                            BorderBrush="{Binding CurrentTheme.BorderBrush}" 
-                            BorderThickness="1" 
-                            CornerRadius="8" 
-                            Padding="8,3" 
-                            Margin="4,0,6,0">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Ellipse Width="6" Height="6" Margin="0,0,5,0"
-                                     Fill="{Binding GpuTempStatusColor, Converter={StaticResource StringToBrush}}" />
-                            <TextBlock Text="GPU" FontWeight="Bold" FontSize="10.5" Foreground="{Binding CurrentTheme.GpuBrush}" Margin="0,0,6,0" />
-                            <TextBlock Text="{Binding GpuTemp, StringFormat='{}{0:0.#}°C'}" 
-                                       FontSize="11.5" FontWeight="Bold" Foreground="#F8FAFC" 
-                                       ToolTip="Température GPU Core" />
-                            <TextBlock Text="•" Foreground="#475569" Margin="5,0" />
-                            <TextBlock Text="{Binding GpuClockGhz, StringFormat='{}{0:0.00} GHz'}" 
-                                       FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" 
-                                       ToolTip="Fréquence GPU" />
-                            <TextBlock Text="•" Foreground="#475569" Margin="5,0" />
-                            <TextBlock Text="{Binding GpuLoad, StringFormat='{}{0:0}%'}" 
-                                       FontSize="10" Foreground="#64748B" 
-                                       ToolTip="Utilisation GPU" />
-                        </StackPanel>
-                    </Border>
+                    <!-- GPU Info (Clean without inner border) -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                        <Ellipse Width="6" Height="6" Margin="0,0,5,0"
+                                 Fill="{Binding GpuTempStatusColor, Converter={StaticResource StringToBrush}}" />
+                        <TextBlock Text="GPU" FontWeight="Bold" FontSize="11" Foreground="{Binding CurrentTheme.GpuBrush}" Margin="0,0,6,0" />
+                        <TextBlock Text="{Binding GpuTemp, StringFormat='{}{0:0.#}°C'}" 
+                                   FontSize="12" FontWeight="Bold" Foreground="#F8FAFC" 
+                                   ToolTip="Température GPU Core" />
+                        <TextBlock Text="•" Foreground="#475569" Margin="6,0" />
+                        <TextBlock Text="{Binding GpuClockGhz, StringFormat='{}{0:0.00} GHz'}" 
+                                   FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" 
+                                   ToolTip="Fréquence GPU" />
+                        <TextBlock Text="•" Foreground="#475569" Margin="6,0" />
+                        <TextBlock Text="{Binding GpuLoad, StringFormat='{}{0:0}%'}" 
+                                   FontSize="10.5" Foreground="#64748B" 
+                                   ToolTip="Utilisation GPU" />
+                    </StackPanel>
 
                     <!-- Mini Actions (Theme, Pin, Expand, Min, Close) -->
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="2,0,0,0">
