@@ -1,0 +1,18 @@
+## [Visual Studio / .NET]
+bin/
+obj/
+publish/
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+*.suo
+*.pdb
+
+## Logs & Temp files
+*.log
+probe_output.txt
+probe_error.txt
+diag_dump.txt
+dotnet-install.ps1
+screenshot.png
