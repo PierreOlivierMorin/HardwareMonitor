@@ -23,6 +23,14 @@ public class HardwareChart : FrameworkElement
         DependencyProperty.Register(nameof(WindowMinutes), typeof(TimeWindowMinutes), typeof(HardwareChart),
             new FrameworkPropertyMetadata(TimeWindowMinutes.Min5, FrameworkPropertyMetadataOptions.AffectsRender));
 
+    public static readonly DependencyProperty CpuColorProperty =
+        DependencyProperty.Register(nameof(CpuColor), typeof(Color), typeof(HardwareChart),
+            new FrameworkPropertyMetadata(Color.FromRgb(56, 189, 248), FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty GpuColorProperty =
+        DependencyProperty.Register(nameof(GpuColor), typeof(Color), typeof(HardwareChart),
+            new FrameworkPropertyMetadata(Color.FromRgb(52, 211, 153), FrameworkPropertyMetadataOptions.AffectsRender));
+
     public List<TelemetryPoint>? Points
     {
         get => (List<TelemetryPoint>?)GetValue(PointsProperty);
@@ -41,46 +49,44 @@ public class HardwareChart : FrameworkElement
         set => SetValue(WindowMinutesProperty, value);
     }
 
+    public Color CpuColor
+    {
+        get => (Color)GetValue(CpuColorProperty);
+        set => SetValue(CpuColorProperty, value);
+    }
+
+    public Color GpuColor
+    {
+        get => (Color)GetValue(GpuColorProperty);
+        set => SetValue(GpuColorProperty, value);
+    }
+
     private Point? _mousePos;
     private readonly Typeface _font = new("Segoe UI");
     private readonly Pen _gridPen;
     private readonly Pen _axisPen;
     private readonly Pen _cursorPen;
-    private readonly Pen _cpuPen;
-    private readonly Pen _gpuPen;
-    private readonly Brush _cpuBrush;
-    private readonly Brush _gpuBrush;
     private readonly Brush _textBrush;
     private readonly Brush _dimTextBrush;
 
     public HardwareChart()
     {
-        _gridPen = new Pen(new SolidColorBrush(Color.FromArgb(35, 255, 255, 255)), 1.0);
+        _gridPen = new Pen(new SolidColorBrush(Color.FromArgb(25, 255, 255, 255)), 1.0);
         _gridPen.Freeze();
 
-        _axisPen = new Pen(new SolidColorBrush(Color.FromArgb(70, 255, 255, 255)), 1.0);
+        _axisPen = new Pen(new SolidColorBrush(Color.FromArgb(50, 255, 255, 255)), 1.0);
         _axisPen.Freeze();
 
-        _cursorPen = new Pen(new SolidColorBrush(Color.FromArgb(180, 255, 255, 255)), 1.0)
+        _cursorPen = new Pen(new SolidColorBrush(Color.FromArgb(140, 255, 255, 255)), 1.0)
         {
             DashStyle = DashStyles.Dash
         };
         _cursorPen.Freeze();
 
-        _cpuBrush = new SolidColorBrush(Color.FromRgb(0, 229, 255)); // Cyan
-        _cpuBrush.Freeze();
-        _cpuPen = new Pen(_cpuBrush, 2.0);
-        _cpuPen.Freeze();
-
-        _gpuBrush = new SolidColorBrush(Color.FromRgb(0, 230, 118)); // Emerald Green
-        _gpuBrush.Freeze();
-        _gpuPen = new Pen(_gpuBrush, 2.0);
-        _gpuPen.Freeze();
-
-        _textBrush = new SolidColorBrush(Color.FromRgb(220, 225, 235));
+        _textBrush = new SolidColorBrush(Color.FromRgb(240, 245, 250));
         _textBrush.Freeze();
 
-        _dimTextBrush = new SolidColorBrush(Color.FromArgb(140, 200, 210, 225));
+        _dimTextBrush = new SolidColorBrush(Color.FromArgb(160, 180, 195, 215));
         _dimTextBrush.Freeze();
 
         ClipToBounds = true;
@@ -115,9 +121,9 @@ public class HardwareChart : FrameworkElement
         double plotH = h - padTop - padBottom;
         if (plotW <= 0 || plotH <= 0) return;
 
-        // Draw background chart area
+        // Background chart canvas area (dark subtle tint)
         var bgRect = new Rect(padLeft, padTop, plotW, plotH);
-        dc.DrawRoundedRectangle(new SolidColorBrush(Color.FromArgb(40, 15, 20, 30)), null, bgRect, 6, 6);
+        dc.DrawRoundedRectangle(new SolidColorBrush(Color.FromArgb(35, 10, 15, 22)), null, bgRect, 6, 6);
 
         // Determine Y bounds based on Metric
         (float yMin, float yMax, string unit, float[] gridSteps) = Metric switch
@@ -157,7 +163,7 @@ public class HardwareChart : FrameworkElement
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 _font,
-                10,
+                9.5,
                 _dimTextBrush,
                 1.0
             );
@@ -196,7 +202,6 @@ public class HardwareChart : FrameworkElement
 
         if (Points == null || Points.Count < 2)
         {
-            // Empty state message
             var emptyText = new FormattedText(
                 "Acquisition des données en cours...",
                 CultureInfo.CurrentCulture,
@@ -224,7 +229,6 @@ public class HardwareChart : FrameworkElement
             return new Point(x, y);
         }
 
-        // Helper to extract values
         Func<TelemetryPoint, float> cpuValFunc = Metric switch
         {
             MetricType.Temperature => p => p.CpuTemp,
@@ -239,9 +243,15 @@ public class HardwareChart : FrameworkElement
             _ => p => p.GpuLoad
         };
 
+        // Pens & Brushes based on dynamic Theme colors
+        var cpuBrush = new SolidColorBrush(CpuColor);
+        var gpuBrush = new SolidColorBrush(GpuColor);
+        var cpuPen = new Pen(cpuBrush, 1.8);
+        var gpuPen = new Pen(gpuBrush, 1.8);
+
         // Render Series Curve & Area
-        DrawSeries(dc, Points, cpuValFunc, ValueToPoint, _cpuPen, Color.FromRgb(0, 229, 255), padLeft, plotW, padTop, plotH);
-        DrawSeries(dc, Points, gpuValFunc, ValueToPoint, _gpuPen, Color.FromRgb(0, 230, 118), padLeft, plotW, padTop, plotH);
+        DrawSeries(dc, Points, cpuValFunc, ValueToPoint, cpuPen, CpuColor, padTop, plotH);
+        DrawSeries(dc, Points, gpuValFunc, ValueToPoint, gpuPen, GpuColor, padTop, plotH);
 
         // Hover cursor inspection
         if (_mousePos.HasValue && bgRect.Contains(_mousePos.Value))
@@ -250,25 +260,30 @@ public class HardwareChart : FrameworkElement
             double normX = (mx - padLeft) / plotW;
             DateTime targetTime = startTime.AddSeconds(normX * totalSeconds);
 
-            // Find closest telemetry point
             TelemetryPoint? closest = Points
                 .OrderBy(p => Math.Abs((p.Timestamp - targetTime).TotalSeconds))
                 .FirstOrDefault();
 
             if (closest != null)
             {
-                Point cpuPt = ValueToPoint(closest.Timestamp, cpuValFunc(closest));
-                Point gpuPt = ValueToPoint(closest.Timestamp, gpuValFunc(closest));
+                float cpuVal = cpuValFunc(closest);
+                float gpuVal = gpuValFunc(closest);
 
-                // Vertical guideline
+                Point cpuPt = ValueToPoint(closest.Timestamp, cpuVal);
+                Point gpuPt = ValueToPoint(closest.Timestamp, gpuVal);
+
+                // Vertical dashed guideline
                 dc.DrawLine(_cursorPen, new Point(cpuPt.X, padTop), new Point(cpuPt.X, padTop + plotH));
 
-                // Glowing points on curves
-                dc.DrawEllipse(_cpuBrush, null, cpuPt, 4, 4);
-                dc.DrawEllipse(_gpuBrush, null, gpuPt, 4, 4);
+                // Indicator dots on curves
+                dc.DrawEllipse(cpuBrush, null, cpuPt, 3.5, 3.5);
+                dc.DrawEllipse(gpuBrush, null, gpuPt, 3.5, 3.5);
 
-                // Tooltip badge
-                string tooltip = $"CPU: {cpuValFunc(closest):0.#}{unit}\nGPU: {gpuValFunc(closest):0.#}{unit}\n{closest.Timestamp:HH:mm:ss}";
+                // Tooltip badge with clear high contrast text
+                string cpuStr = cpuVal > 0 ? $"{cpuVal:0.#}{unit}" : "N/A";
+                string gpuStr = gpuVal > 0 ? $"{gpuVal:0.#}{unit}" : "N/A";
+                string tooltip = $"CPU: {cpuStr}\nGPU: {gpuStr}\n{closest.Timestamp:HH:mm:ss}";
+
                 var ttText = new FormattedText(
                     tooltip,
                     CultureInfo.InvariantCulture,
@@ -285,7 +300,7 @@ public class HardwareChart : FrameworkElement
                 double tooltipY = Math.Max(padTop + 5, Math.Min(cpuPt.Y - tooltipH / 2, padTop + plotH - tooltipH - 5));
 
                 var ttRect = new Rect(tooltipX, tooltipY, tooltipW, tooltipH);
-                dc.DrawRoundedRectangle(new SolidColorBrush(Color.FromArgb(235, 10, 15, 25)), new Pen(_axisPen.Brush, 1.0), ttRect, 5, 5);
+                dc.DrawRoundedRectangle(new SolidColorBrush(Color.FromArgb(245, 15, 20, 28)), new Pen(_axisPen.Brush, 1.0), ttRect, 5, 5);
                 dc.DrawText(ttText, new Point(tooltipX + 8, tooltipY + 6));
             }
         }
@@ -298,8 +313,6 @@ public class HardwareChart : FrameworkElement
         Func<DateTime, float, Point> toPoint,
         Pen pen,
         Color color,
-        double padLeft,
-        double plotW,
         double padTop,
         double plotH)
     {
@@ -308,7 +321,7 @@ public class HardwareChart : FrameworkElement
         var linePoints = points.Select(p => toPoint(p.Timestamp, valSelector(p))).ToList();
         if (linePoints.Count < 2) return;
 
-        // Draw area fill
+        // Very soft area fill (alpha = 18) so white text and numbers remain 100% visible
         var areaGeom = new StreamGeometry();
         using (var ctx = areaGeom.Open())
         {
@@ -322,7 +335,7 @@ public class HardwareChart : FrameworkElement
         areaGeom.Freeze();
 
         var gradient = new LinearGradientBrush(
-            Color.FromArgb(40, color.R, color.G, color.B),
+            Color.FromArgb(22, color.R, color.G, color.B),
             Color.FromArgb(0, color.R, color.G, color.B),
             new Point(0, 0),
             new Point(0, 1)
@@ -331,7 +344,7 @@ public class HardwareChart : FrameworkElement
 
         dc.DrawGeometry(gradient, null, areaGeom);
 
-        // Draw line
+        // Draw antialiased curve line
         var lineGeom = new StreamGeometry();
         using (var ctx = lineGeom.Open())
         {

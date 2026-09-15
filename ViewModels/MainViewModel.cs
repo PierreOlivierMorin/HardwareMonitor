@@ -9,6 +9,8 @@ using HardwareMonitor.Services;
 
 namespace HardwareMonitor.ViewModels;
 
+public record TimeWindowOption(string Label, TimeWindowMinutes Value);
+
 public class MainViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly HardwareService _hardwareService;
@@ -21,6 +23,9 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private TimeWindowMinutes _selectedWindow = TimeWindowMinutes.Min5;
     private MetricType _selectedMetric = MetricType.Temperature;
     private List<TelemetryPoint>? _chartPoints;
+    private bool _isThemeMenuOpen = false;
+
+    private AppTheme _currentTheme = AppTheme.AvailableThemes[0];
 
     private float _cpuTemp;
     private float _cpuClockGhz;
@@ -39,6 +44,36 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public string GpuName => _hardwareService.GpuName;
     public bool IsElevated => _hardwareService.IsElevated;
     public bool CpuTempAvailable => _hardwareService.CpuTempAvailable;
+
+    public List<AppTheme> Themes => AppTheme.AvailableThemes;
+
+    public List<TimeWindowOption> TimeWindowOptions { get; } = new()
+    {
+        new("⏱️ 5 min", TimeWindowMinutes.Min5),
+        new("⏱️ 10 min", TimeWindowMinutes.Min10),
+        new("⏱️ 15 min", TimeWindowMinutes.Min15),
+        new("⏱️ 20 min", TimeWindowMinutes.Min20),
+        new("⏱️ 60 min", TimeWindowMinutes.Min60)
+    };
+
+    public AppTheme CurrentTheme
+    {
+        get => _currentTheme;
+        set
+        {
+            if (SetField(ref _currentTheme, value))
+            {
+                OnPropertyChanged(nameof(CpuTempStatusColor));
+                OnPropertyChanged(nameof(GpuTempStatusColor));
+            }
+        }
+    }
+
+    public bool IsThemeMenuOpen
+    {
+        get => _isThemeMenuOpen;
+        set => SetField(ref _isThemeMenuOpen, value);
+    }
 
     public bool IsExpanded
     {
@@ -109,31 +144,32 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         _ => "%"
     };
 
-    // Thermal Status Colors
+    // Thermal Status Colors (Muted & Soft)
     public string CpuTempStatusColor => CpuTemp switch
     {
-        <= 0 => "#78909C",       // Dim gray if temp unavailable
-        < 60 => "#00E676",       // Green (< 60°C)
-        < 75 => "#FFD600",       // Yellow (60-75°C)
-        < 85 => "#FF9100",       // Orange (75-85°C)
-        _ => "#FF1744"           // Red (> 85°C)
+        <= 0 => "#64748B",       // Soft Slate
+        < 60 => "#34D399",       // Soft Emerald (< 60°C)
+        < 75 => "#FBBF24",       // Soft Amber (60-75°C)
+        < 85 => "#FB923C",       // Soft Orange (75-85°C)
+        _ => "#F87171"           // Soft Red (> 85°C)
     };
 
     public string GpuTempStatusColor => GpuTemp switch
     {
-        <= 0 => "#78909C",
-        < 60 => "#00E676",
-        < 75 => "#FFD600",
-        < 85 => "#FF9100",
-        _ => "#FF1744"
+        <= 0 => "#64748B",
+        < 60 => "#34D399",
+        < 75 => "#FBBF24",
+        < 85 => "#FB923C",
+        _ => "#F87171"
     };
 
     // Commands
     public ICommand ToggleExpandCommand { get; }
     public ICommand TogglePinCommand { get; }
-    public ICommand SelectWindowCommand { get; }
     public ICommand SelectMetricCommand { get; }
     public ICommand RestartAsAdminCommand { get; }
+    public ICommand ToggleThemeMenuCommand { get; }
+    public ICommand SelectThemeCommand { get; }
 
     public MainViewModel()
     {
@@ -142,13 +178,16 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
         ToggleExpandCommand = new RelayCommand(_ => IsExpanded = !IsExpanded);
         TogglePinCommand = new RelayCommand(_ => IsAlwaysOnTop = !IsAlwaysOnTop);
-        SelectWindowCommand = new RelayCommand(p =>
+        ToggleThemeMenuCommand = new RelayCommand(_ => IsThemeMenuOpen = !IsThemeMenuOpen);
+        SelectThemeCommand = new RelayCommand(p =>
         {
-            if (p is string s && int.TryParse(s, out int min))
+            if (p is AppTheme theme)
             {
-                SelectedWindow = (TimeWindowMinutes)min;
+                CurrentTheme = theme;
+                IsThemeMenuOpen = false;
             }
         });
+
         SelectMetricCommand = new RelayCommand(p =>
         {
             if (p is string s && Enum.TryParse<MetricType>(s, out var metric))

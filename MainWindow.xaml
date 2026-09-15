@@ -25,26 +25,25 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <conv:InverseBooleanToVisibilityConverter x:Key="InvBoolToVis" />
-        <conv:EqualityToBrushConverter x:Key="EqBrush" ActiveBrush="#00E5FF" InactiveBrush="#223046" />
-        <conv:EqualityToBrushConverter x:Key="TimeEqBrush" ActiveBrush="#00E676" InactiveBrush="#223046" />
+        <conv:EqualityToBrushConverter x:Key="EqBrush" ActiveBrush="#38BDF8" InactiveBrush="#1E293B" />
         <conv:StringToColorBrushConverter x:Key="StringToBrush" />
 
-        <!-- Button Style for Filter Buttons -->
+        <!-- Button Style for Metric Selector Buttons -->
         <Style x:Key="FilterBtnStyle" TargetType="Button">
-            <Setter Property="Foreground" Value="#E0E6ED" />
+            <Setter Property="Foreground" Value="#E2E8F0" />
             <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Padding" Value="9,4" />
             <Setter Property="Margin" Value="2,0" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}"
-                                CornerRadius="10"
+                                CornerRadius="8"
                                 Padding="{TemplateBinding Padding}"
                                 BorderThickness="1"
-                                BorderBrush="#3B4A62">
+                                BorderBrush="{Binding CurrentTheme.BorderBrush}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                     </ControlTemplate>
@@ -77,114 +76,124 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Styled Dark ComboBox for Time Window -->
+        <Style x:Key="TimeWindowComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#E2E8F0" />
+            <Setter Property="Background" Value="#161B22" />
+            <Setter Property="BorderBrush" Value="{Binding CurrentTheme.BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
     </Window.Resources>
 
-    <!-- Main Container Card with Glow & Rounded Corners -->
-    <Border CornerRadius="16" 
-            Background="#0D1117" 
-            BorderBrush="#21262D" 
+    <!-- Main Container Card with Dynamic Theme Background & Subtle Shadow -->
+    <Border CornerRadius="14" 
+            Background="{Binding CurrentTheme.BackgroundBrush}" 
+            BorderBrush="{Binding CurrentTheme.BorderBrush}" 
             BorderThickness="1.2" 
-            Margin="10" 
+            Margin="8" 
             MouseLeftButtonDown="Window_MouseLeftButtonDown">
         
         <Border.Effect>
-            <DropShadowEffect BlurRadius="20" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.75" />
+            <DropShadowEffect BlurRadius="16" ShadowDepth="3" Direction="270" Color="#000000" Opacity="0.65" />
         </Border.Effect>
 
         <Grid>
             <!-- =================================================================== -->
-            <!-- 1. MINI COMPACT WIDGET (Visible when NOT Expanded)                   -->
+            <!-- 1. MINI COMPACT SINGLE-LINE WIDGET (Visible when NOT Expanded)       -->
             <!-- =================================================================== -->
             <Grid Visibility="{Binding IsExpanded, Converter={StaticResource InvBoolToVis}}"
-                  Width="480"
-                  Height="72"
-                  Margin="12,4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                  Height="38"
+                  Margin="8,4">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    
+                    <!-- Drag handle icon -->
+                    <TextBlock Text="⋮⋮" FontSize="11" Foreground="#475569" VerticalAlignment="Center" Margin="2,0,6,0" ToolTip="Déplacer" />
 
-                <!-- CPU Mini Block -->
-                <Border Grid.Column="0" Background="#161B22" CornerRadius="12" Padding="10,6" Margin="0,0,6,0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="7" Height="7" Margin="0,0,6,0"
+                    <!-- CPU Single-Line Capsule -->
+                    <Border Background="{Binding CurrentTheme.CardBackgroundBrush}" 
+                            BorderBrush="{Binding CurrentTheme.BorderBrush}" 
+                            BorderThickness="1" 
+                            CornerRadius="8" 
+                            Padding="8,3" 
+                            Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="6" Height="6" Margin="0,0,5,0"
                                      Fill="{Binding CpuTempStatusColor, Converter={StaticResource StringToBrush}}" />
-                            <TextBlock Text="CPU" FontWeight="Bold" FontSize="11" Foreground="#00E5FF" />
-                            <TextBlock Text="{Binding CpuLoad, StringFormat=' {0:0}%'}" FontSize="10" Foreground="#8B949E" Margin="4,0,0,0" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,0,0">
-                            <!-- Temp -->
+                            <TextBlock Text="CPU" FontWeight="Bold" FontSize="10.5" Foreground="{Binding CurrentTheme.CpuBrush}" Margin="0,0,6,0" />
                             <TextBlock Text="{Binding CpuTemp, StringFormat='{}{0:0.#}°C'}" 
-                                       FontSize="15" FontWeight="Bold" Foreground="#F0F6FC" 
-                                       ToolTip="Température CPU Package / Tctl" />
-                            <TextBlock Text="|" Foreground="#30363D" Margin="8,0" VerticalAlignment="Center" />
-                            <!-- Clock -->
+                                       FontSize="11.5" FontWeight="Bold" Foreground="#F8FAFC" 
+                                       ToolTip="Température CPU Package / SoC" />
+                            <TextBlock Text="•" Foreground="#475569" Margin="5,0" />
                             <TextBlock Text="{Binding CpuClockGhz, StringFormat='{}{0:0.00} GHz'}" 
-                                       FontSize="13" FontWeight="SemiBold" Foreground="#79C0FF" VerticalAlignment="Center" 
-                                       ToolTip="Fréquence d'horloge CPU" />
+                                       FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" 
+                                       ToolTip="Fréquence CPU" />
+                            <TextBlock Text="•" Foreground="#475569" Margin="5,0" />
+                            <TextBlock Text="{Binding CpuLoad, StringFormat='{}{0:0}%'}" 
+                                       FontSize="10" Foreground="#64748B" 
+                                       ToolTip="Utilisation CPU" />
                         </StackPanel>
-                    </Grid>
-                </Border>
+                    </Border>
 
-                <!-- Separator -->
-                <Rectangle Grid.Column="1" Width="1" Fill="#21262D" Margin="2,10" />
+                    <!-- Separator -->
+                    <Rectangle Width="1" Height="14" Fill="{Binding CurrentTheme.BorderBrush}" Margin="3,0" />
 
-                <!-- GPU Mini Block -->
-                <Border Grid.Column="2" Background="#161B22" CornerRadius="12" Padding="10,6" Margin="6,0,8,0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="7" Height="7" Margin="0,0,6,0"
+                    <!-- GPU Single-Line Capsule -->
+                    <Border Background="{Binding CurrentTheme.CardBackgroundBrush}" 
+                            BorderBrush="{Binding CurrentTheme.BorderBrush}" 
+                            BorderThickness="1" 
+                            CornerRadius="8" 
+                            Padding="8,3" 
+                            Margin="4,0,6,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="6" Height="6" Margin="0,0,5,0"
                                      Fill="{Binding GpuTempStatusColor, Converter={StaticResource StringToBrush}}" />
-                            <TextBlock Text="GPU" FontWeight="Bold" FontSize="11" Foreground="#00E676" />
-                            <TextBlock Text="{Binding GpuLoad, StringFormat=' {0:0}%'}" FontSize="10" Foreground="#8B949E" Margin="4,0,0,0" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,0,0">
-                            <!-- Temp -->
+                            <TextBlock Text="GPU" FontWeight="Bold" FontSize="10.5" Foreground="{Binding CurrentTheme.GpuBrush}" Margin="0,0,6,0" />
                             <TextBlock Text="{Binding GpuTemp, StringFormat='{}{0:0.#}°C'}" 
-                                       FontSize="15" FontWeight="Bold" Foreground="#F0F6FC" 
+                                       FontSize="11.5" FontWeight="Bold" Foreground="#F8FAFC" 
                                        ToolTip="Température GPU Core" />
-                            <TextBlock Text="|" Foreground="#30363D" Margin="8,0" VerticalAlignment="Center" />
-                            <!-- Clock -->
+                            <TextBlock Text="•" Foreground="#475569" Margin="5,0" />
                             <TextBlock Text="{Binding GpuClockGhz, StringFormat='{}{0:0.00} GHz'}" 
-                                       FontSize="13" FontWeight="SemiBold" Foreground="#56D364" VerticalAlignment="Center" 
-                                       ToolTip="Fréquence d'horloge GPU" />
+                                       FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" 
+                                       ToolTip="Fréquence GPU" />
+                            <TextBlock Text="•" Foreground="#475569" Margin="5,0" />
+                            <TextBlock Text="{Binding GpuLoad, StringFormat='{}{0:0}%'}" 
+                                       FontSize="10" Foreground="#64748B" 
+                                       ToolTip="Utilisation GPU" />
                         </StackPanel>
-                    </Grid>
-                </Border>
+                    </Border>
 
-                <!-- Mini Toolbar (Pin, Expand, Close) -->
-                <StackPanel Grid.Column="3" VerticalAlignment="Center" Orientation="Horizontal" Margin="2,0,0,0">
-                    <Button Style="{StaticResource IconBtnStyle}" 
-                            Command="{Binding TogglePinCommand}"
-                            ToolTip="Épingler au premier plan">
-                        <TextBlock Text="📌" FontSize="10" Opacity="{Binding IsAlwaysOnTop, Converter={StaticResource BoolToVis}}" />
-                    </Button>
-                    <Button Style="{StaticResource IconBtnStyle}" 
-                            Command="{Binding ToggleExpandCommand}" 
-                            ToolTip="Agrandir et voir les graphiques">
-                        <TextBlock Text="▾" FontSize="14" FontWeight="Bold" Foreground="#00E5FF" />
-                    </Button>
-                    <Button Style="{StaticResource IconBtnStyle}" 
-                            Click="MinimizeBtn_Click" 
-                            ToolTip="Réduire">
-                        <TextBlock Text="—" FontSize="11" />
-                    </Button>
-                    <Button Style="{StaticResource IconBtnStyle}" 
-                            Click="CloseBtn_Click" 
-                            ToolTip="Fermer">
-                        <TextBlock Text="✕" FontSize="11" Foreground="#F85149" />
-                    </Button>
+                    <!-- Mini Actions (Theme, Pin, Expand, Min, Close) -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="2,0,0,0">
+                        <!-- Theme Cogwheel -->
+                        <Button x:Name="MiniThemeBtn" Style="{StaticResource IconBtnStyle}" 
+                                Command="{Binding ToggleThemeMenuCommand}" 
+                                ToolTip="Changer de thème visuel">
+                            <TextBlock Text="⚙" FontSize="11" />
+                        </Button>
+                        <!-- Pin -->
+                        <Button Style="{StaticResource IconBtnStyle}" 
+                                Command="{Binding TogglePinCommand}"
+                                ToolTip="Épingler au premier plan">
+                            <TextBlock Text="📌" FontSize="10" Opacity="{Binding IsAlwaysOnTop, Converter={StaticResource BoolToVis}}" />
+                        </Button>
+                        <!-- Expand -->
+                        <Button Style="{StaticResource IconBtnStyle}" 
+                                Command="{Binding ToggleExpandCommand}" 
+                                ToolTip="Dérouler le panneau graphique">
+                            <TextBlock Text="▾" FontSize="13" FontWeight="Bold" Foreground="{Binding CurrentTheme.AccentBrush}" />
+                        </Button>
+                        <!-- Close -->
+                        <Button Style="{StaticResource IconBtnStyle}" 
+                                Click="CloseBtn_Click" 
+                                ToolTip="Fermer">
+                            <TextBlock Text="✕" FontSize="10" Foreground="#F87171" />
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
             </Grid>
 
@@ -193,126 +202,136 @@
             <!-- =================================================================== -->
             <Grid Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}"
                   Width="540"
-                  Margin="16,14">
+                  Margin="16,12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" /> <!-- Window Header -->
                     <RowDefinition Height="Auto" /> <!-- Hardware Live Cards -->
-                    <RowDefinition Height="Auto" /> <!-- Filter & Period Selectors -->
-                    <RowDefinition Height="220" />  <!-- Real-time Chart -->
+                    <RowDefinition Height="Auto" /> <!-- Filter Tabs & Time Window Dropdown -->
+                    <RowDefinition Height="215" />  <!-- Real-time Chart -->
                     <RowDefinition Height="Auto" /> <!-- Stats Min/Max/Avg -->
-                    <RowDefinition Height="Auto" /> <!-- Settings Footer & Admin Notice -->
+                    <RowDefinition Height="Auto" /> <!-- Settings Footer -->
                 </Grid.RowDefinitions>
 
                 <!-- Row 0: Window Header -->
-                <Grid Grid.Row="0" Margin="0,0,0,12">
+                <Grid Grid.Row="0" Margin="0,0,0,10">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="⚡ HARDWARE MONITOR" FontWeight="Bold" FontSize="13" Foreground="#F0F6FC" />
-                        <Border Background="#1F2937" CornerRadius="8" Padding="6,2" Margin="10,0,0,0">
+                        <TextBlock Text="⚡ HARDWARE MONITOR" FontWeight="Bold" FontSize="12.5" Foreground="#F8FAFC" />
+                        <Border Background="{Binding CurrentTheme.CardBackgroundBrush}" CornerRadius="6" Padding="6,2" Margin="8,0,0,0" BorderBrush="{Binding CurrentTheme.BorderBrush}" BorderThickness="1">
                             <TextBlock Text="{Binding SelectedWindow, StringFormat='Historique {0}'}" FontSize="10" Foreground="#94A3B8" />
                         </Border>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <!-- Theme Cogwheel -->
+                        <Button x:Name="ExpandedThemeBtn" Style="{StaticResource IconBtnStyle}" 
+                                Command="{Binding ToggleThemeMenuCommand}" 
+                                ToolTip="Thèmes de couleurs">
+                            <TextBlock Text="⚙" FontSize="12" />
+                        </Button>
+                        <!-- Pin -->
                         <Button Style="{StaticResource IconBtnStyle}" 
                                 Command="{Binding TogglePinCommand}"
                                 ToolTip="Épingler au premier plan">
-                            <TextBlock Text="📌" FontSize="11" />
+                            <TextBlock Text="📌" FontSize="10" />
                         </Button>
+                        <!-- Collapse to Mini Pill -->
                         <Button Style="{StaticResource IconBtnStyle}" 
                                 Command="{Binding ToggleExpandCommand}" 
-                                ToolTip="Réduire en mode compact">
-                            <TextBlock Text="▴" FontSize="15" FontWeight="Bold" Foreground="#00E5FF" />
+                                ToolTip="Réduire en mode mini-pill">
+                            <TextBlock Text="▴" FontSize="14" FontWeight="Bold" Foreground="{Binding CurrentTheme.AccentBrush}" />
                         </Button>
+                        <!-- Minimize to taskbar -->
                         <Button Style="{StaticResource IconBtnStyle}" 
                                 Click="MinimizeBtn_Click" 
                                 ToolTip="Réduire">
                             <TextBlock Text="—" FontSize="11" />
                         </Button>
+                        <!-- Close -->
                         <Button Style="{StaticResource IconBtnStyle}" 
                                 Click="CloseBtn_Click" 
                                 ToolTip="Fermer">
-                            <TextBlock Text="✕" FontSize="11" Foreground="#F85149" />
+                            <TextBlock Text="✕" FontSize="10" Foreground="#F87171" />
                         </Button>
                     </StackPanel>
                 </Grid>
 
                 <!-- Row 1: Live Hardware Cards (CPU & GPU) -->
-                <Grid Grid.Row="1" Margin="0,0,0,12">
+                <Grid Grid.Row="1" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="10" />
+                        <ColumnDefinition Width="8" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
                     <!-- CPU Detailed Card -->
-                    <Border Grid.Column="0" Background="#161B22" CornerRadius="12" Padding="12,10" BorderBrush="#21262D" BorderThickness="1">
+                    <Border Grid.Column="0" Background="{Binding CurrentTheme.CardBackgroundBrush}" CornerRadius="10" Padding="11,8" BorderBrush="{Binding CurrentTheme.BorderBrush}" BorderThickness="1">
                         <StackPanel>
                             <DockPanel>
-                                <TextBlock Text="CPU" FontWeight="Bold" FontSize="12" Foreground="#00E5FF" />
-                                <TextBlock Text="{Binding CpuLoad, StringFormat='{}{0:0.#}% Load'}" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Right" />
+                                <TextBlock Text="CPU" FontWeight="Bold" FontSize="11.5" Foreground="{Binding CurrentTheme.CpuBrush}" />
+                                <TextBlock Text="{Binding CpuLoad, StringFormat='{}{0:0.#}% Load'}" FontSize="10.5" Foreground="#94A3B8" HorizontalAlignment="Right" />
                             </DockPanel>
-                            <TextBlock Text="{Binding CpuName}" FontSize="10" Foreground="#6E7681" TextTrimming="CharacterEllipsis" Margin="0,2,0,6" />
+                            <TextBlock Text="{Binding CpuName}" FontSize="9.5" Foreground="#64748B" TextTrimming="CharacterEllipsis" Margin="0,1,0,5" />
                             
-                            <Grid Margin="0,2,0,0">
+                            <Grid Margin="0,1,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <!-- Temp -->
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="TEMP" FontSize="9" FontWeight="Bold" Foreground="#6E7681" />
+                                    <TextBlock Text="TEMP" FontSize="8.5" FontWeight="Bold" Foreground="#64748B" />
                                     <StackPanel Orientation="Horizontal">
                                         <Ellipse Width="6" Height="6" Margin="0,0,4,0" VerticalAlignment="Center"
                                                  Fill="{Binding CpuTempStatusColor, Converter={StaticResource StringToBrush}}" />
-                                        <TextBlock Text="{Binding CpuTemp, StringFormat='{}{0:0.#}°C'}" FontSize="18" FontWeight="Bold" Foreground="#F0F6FC" />
+                                        <TextBlock Text="{Binding CpuTemp, StringFormat='{}{0:0.#}°C'}" FontSize="16" FontWeight="Bold" Foreground="#F8FAFC" />
                                     </StackPanel>
                                 </StackPanel>
                                 <!-- Clock -->
                                 <StackPanel Grid.Column="1">
-                                    <TextBlock Text="FRÉQUENCE" FontSize="9" FontWeight="Bold" Foreground="#6E7681" />
-                                    <TextBlock Text="{Binding CpuClockGhz, StringFormat='{}{0:0.00} GHz'}" FontSize="16" FontWeight="Bold" Foreground="#79C0FF" Margin="0,1,0,0" />
+                                    <TextBlock Text="FRÉQUENCE" FontSize="8.5" FontWeight="Bold" Foreground="#64748B" />
+                                    <TextBlock Text="{Binding CpuClockGhz, StringFormat='{}{0:0.00} GHz'}" FontSize="15" FontWeight="Bold" Foreground="#94A3B8" Margin="0,1,0,0" />
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
                     </Border>
 
                     <!-- GPU Detailed Card -->
-                    <Border Grid.Column="2" Background="#161B22" CornerRadius="12" Padding="12,10" BorderBrush="#21262D" BorderThickness="1">
+                    <Border Grid.Column="2" Background="{Binding CurrentTheme.CardBackgroundBrush}" CornerRadius="10" Padding="11,8" BorderBrush="{Binding CurrentTheme.BorderBrush}" BorderThickness="1">
                         <StackPanel>
                             <DockPanel>
-                                <TextBlock Text="GPU" FontWeight="Bold" FontSize="12" Foreground="#00E676" />
-                                <TextBlock Text="{Binding GpuLoad, StringFormat='{}{0:0.#}% Load'}" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Right" />
+                                <TextBlock Text="GPU" FontWeight="Bold" FontSize="11.5" Foreground="{Binding CurrentTheme.GpuBrush}" />
+                                <TextBlock Text="{Binding GpuLoad, StringFormat='{}{0:0.#}% Load'}" FontSize="10.5" Foreground="#94A3B8" HorizontalAlignment="Right" />
                             </DockPanel>
-                            <TextBlock Text="{Binding GpuName}" FontSize="10" Foreground="#6E7681" TextTrimming="CharacterEllipsis" Margin="0,2,0,6" />
+                            <TextBlock Text="{Binding GpuName}" FontSize="9.5" Foreground="#64748B" TextTrimming="CharacterEllipsis" Margin="0,1,0,5" />
                             
-                            <Grid Margin="0,2,0,0">
+                            <Grid Margin="0,1,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <!-- Temp -->
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="TEMP (HOTSPOT)" FontSize="9" FontWeight="Bold" Foreground="#6E7681" />
+                                    <TextBlock Text="TEMP (HOTSPOT)" FontSize="8.5" FontWeight="Bold" Foreground="#64748B" />
                                     <StackPanel Orientation="Horizontal">
                                         <Ellipse Width="6" Height="6" Margin="0,0,4,0" VerticalAlignment="Center"
                                                  Fill="{Binding GpuTempStatusColor, Converter={StaticResource StringToBrush}}" />
-                                        <TextBlock Text="{Binding GpuTemp, StringFormat='{}{0:0.#}°C'}" FontSize="18" FontWeight="Bold" Foreground="#F0F6FC" />
-                                        <TextBlock Text="{Binding GpuHotSpotTemp, StringFormat=' ({0:0}°)'}" FontSize="10" Foreground="#8B949E" VerticalAlignment="Center" Margin="2,0,0,0" />
+                                        <TextBlock Text="{Binding GpuTemp, StringFormat='{}{0:0.#}°C'}" FontSize="16" FontWeight="Bold" Foreground="#F8FAFC" />
+                                        <TextBlock Text="{Binding GpuHotSpotTemp, StringFormat=' ({0:0}°)'}" FontSize="9.5" Foreground="#94A3B8" VerticalAlignment="Center" Margin="2,0,0,0" />
                                     </StackPanel>
                                 </StackPanel>
                                 <!-- Clock -->
                                 <StackPanel Grid.Column="1">
-                                    <TextBlock Text="FRÉQUENCE" FontSize="9" FontWeight="Bold" Foreground="#6E7681" />
-                                    <TextBlock Text="{Binding GpuClockGhz, StringFormat='{}{0:0.00} GHz'}" FontSize="16" FontWeight="Bold" Foreground="#56D364" Margin="0,1,0,0" />
+                                    <TextBlock Text="FRÉQUENCE" FontSize="8.5" FontWeight="Bold" Foreground="#64748B" />
+                                    <TextBlock Text="{Binding GpuClockGhz, StringFormat='{}{0:0.00} GHz'}" FontSize="15" FontWeight="Bold" Foreground="#94A3B8" Margin="0,1,0,0" />
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
                     </Border>
                 </Grid>
 
-                <!-- Row 2: Selectors (Metric & Time Window) -->
+                <!-- Row 2: Selectors (Metric Tabs & Time Window Dropdown) -->
                 <Grid Grid.Row="2" Margin="0,0,0,8">
-                    <!-- Left: Metric Selector (Temp, Clock, Load) -->
+                    <!-- Left: Metric Selector Tabs -->
                     <StackPanel Orientation="Horizontal">
                         <Button Style="{StaticResource FilterBtnStyle}" 
                                 Content="🌡️ Température"
@@ -328,83 +347,75 @@
                                 Background="{Binding SelectedMetric, Converter={StaticResource EqBrush}, ConverterParameter=Load}" />
                     </StackPanel>
 
-                    <!-- Right: History Time Windows (5m, 10m, 15m, 20m, 60m) -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Style="{StaticResource FilterBtnStyle}" Content="5m"
-                                Command="{Binding SelectWindowCommand}" CommandParameter="5"
-                                Background="{Binding SelectedWindow, Converter={StaticResource TimeEqBrush}, ConverterParameter=Min5}" />
-                        <Button Style="{StaticResource FilterBtnStyle}" Content="10m"
-                                Command="{Binding SelectWindowCommand}" CommandParameter="10"
-                                Background="{Binding SelectedWindow, Converter={StaticResource TimeEqBrush}, ConverterParameter=Min10}" />
-                        <Button Style="{StaticResource FilterBtnStyle}" Content="15m"
-                                Command="{Binding SelectWindowCommand}" CommandParameter="15"
-                                Background="{Binding SelectedWindow, Converter={StaticResource TimeEqBrush}, ConverterParameter=Min15}" />
-                        <Button Style="{StaticResource FilterBtnStyle}" Content="20m"
-                                Command="{Binding SelectWindowCommand}" CommandParameter="20"
-                                Background="{Binding SelectedWindow, Converter={StaticResource TimeEqBrush}, ConverterParameter=Min20}" />
-                        <Button Style="{StaticResource FilterBtnStyle}" Content="60m"
-                                Command="{Binding SelectWindowCommand}" CommandParameter="60"
-                                Background="{Binding SelectedWindow, Converter={StaticResource TimeEqBrush}, ConverterParameter=Min60}" />
-                    </StackPanel>
+                    <!-- Right: Time Window Dropdown (ComboBox) -->
+                    <ComboBox HorizontalAlignment="Right"
+                              Style="{StaticResource TimeWindowComboBoxStyle}"
+                              ItemsSource="{Binding TimeWindowOptions}"
+                              SelectedValuePath="Value"
+                              DisplayMemberPath="Label"
+                              SelectedValue="{Binding SelectedWindow}"
+                              Width="110" Height="26" />
                 </Grid>
 
                 <!-- Row 3: High-Performance Hardware Chart -->
-                <Border Grid.Row="3" Background="#11161D" CornerRadius="12" BorderBrush="#21262D" BorderThickness="1" Padding="4">
+                <Border Grid.Row="3" Background="{Binding CurrentTheme.CardBackgroundBrush}" CornerRadius="10" BorderBrush="{Binding CurrentTheme.BorderBrush}" BorderThickness="1" Padding="4">
                     <controls:HardwareChart Points="{Binding ChartPoints}" 
                                            Metric="{Binding SelectedMetric}" 
-                                           WindowMinutes="{Binding SelectedWindow}" />
+                                           WindowMinutes="{Binding SelectedWindow}"
+                                           CpuColor="{Binding CurrentTheme.CpuColor}"
+                                           GpuColor="{Binding CurrentTheme.GpuColor}" />
                 </Border>
 
                 <!-- Row 4: Statistics Summary Chips (Min, Avg, Max) -->
-                <Grid Grid.Row="4" Margin="0,10,0,10">
+                <Grid Grid.Row="4" Margin="0,8,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="10" />
+                        <ColumnDefinition Width="8" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
                     <!-- CPU Stats -->
-                    <Border Grid.Column="0" Background="#161B22" CornerRadius="10" Padding="10,6" BorderBrush="#21262D" BorderThickness="1">
+                    <Border Grid.Column="0" Background="{Binding CurrentTheme.CardBackgroundBrush}" CornerRadius="8" Padding="9,5" BorderBrush="{Binding CurrentTheme.BorderBrush}" BorderThickness="1">
                         <DockPanel>
-                            <TextBlock Text="CPU" FontWeight="Bold" FontSize="11" Foreground="#00E5FF" VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <TextBlock Text="CPU" FontWeight="Bold" FontSize="10" Foreground="{Binding CurrentTheme.CpuBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <TextBlock Text="Min: " FontSize="10" Foreground="#6E7681" />
-                                <TextBlock Text="{Binding CpuStats.Min, StringFormat='{}{0:0.#}'}" FontSize="10" FontWeight="Bold" Foreground="#C9D1D9" />
-                                <TextBlock Text="{Binding MetricUnit}" FontSize="9" Foreground="#6E7681" Margin="1,0,8,0" />
+                                <TextBlock Text="Min: " FontSize="9.5" Foreground="#64748B" />
+                                <TextBlock Text="{Binding CpuStats.Min, StringFormat='{}{0:0.#}'}" FontSize="9.5" FontWeight="Bold" Foreground="#E2E8F0" />
+                                <TextBlock Text="{Binding MetricUnit}" FontSize="8.5" Foreground="#64748B" Margin="1,0,6,0" />
 
-                                <TextBlock Text="Moy: " FontSize="10" Foreground="#6E7681" />
-                                <TextBlock Text="{Binding CpuStats.Average, StringFormat='{}{0:0.#}'}" FontSize="10" FontWeight="Bold" Foreground="#00E5FF" />
-                                <TextBlock Text="{Binding MetricUnit}" FontSize="9" Foreground="#6E7681" Margin="1,0,8,0" />
+                                <TextBlock Text="Moy: " FontSize="9.5" Foreground="#64748B" />
+                                <TextBlock Text="{Binding CpuStats.Average, StringFormat='{}{0:0.#}'}" FontSize="9.5" FontWeight="Bold" Foreground="{Binding CurrentTheme.CpuBrush}" />
+                                <TextBlock Text="{Binding MetricUnit}" FontSize="8.5" Foreground="#64748B" Margin="1,0,6,0" />
 
-                                <TextBlock Text="Max: " FontSize="10" Foreground="#6E7681" />
-                                <TextBlock Text="{Binding CpuStats.Max, StringFormat='{}{0:0.#}'}" FontSize="10" FontWeight="Bold" Foreground="#F85149" />
-                                <TextBlock Text="{Binding MetricUnit}" FontSize="9" Foreground="#6E7681" Margin="1,0,0,0" />
+                                <TextBlock Text="Max: " FontSize="9.5" Foreground="#64748B" />
+                                <TextBlock Text="{Binding CpuStats.Max, StringFormat='{}{0:0.#}'}" FontSize="9.5" FontWeight="Bold" Foreground="#F87171" />
+                                <TextBlock Text="{Binding MetricUnit}" FontSize="8.5" Foreground="#64748B" Margin="1,0,0,0" />
                             </StackPanel>
                         </DockPanel>
                     </Border>
 
                     <!-- GPU Stats -->
-                    <Border Grid.Column="2" Background="#161B22" CornerRadius="10" Padding="10,6" BorderBrush="#21262D" BorderThickness="1">
+                    <Border Grid.Column="2" Background="{Binding CurrentTheme.CardBackgroundBrush}" CornerRadius="8" Padding="9,5" BorderBrush="{Binding CurrentTheme.BorderBrush}" BorderThickness="1">
                         <DockPanel>
-                            <TextBlock Text="GPU" FontWeight="Bold" FontSize="11" Foreground="#00E676" VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <TextBlock Text="GPU" FontWeight="Bold" FontSize="10" Foreground="{Binding CurrentTheme.GpuBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <TextBlock Text="Min: " FontSize="10" Foreground="#6E7681" />
-                                <TextBlock Text="{Binding GpuStats.Min, StringFormat='{}{0:0.#}'}" FontSize="10" FontWeight="Bold" Foreground="#C9D1D9" />
-                                <TextBlock Text="{Binding MetricUnit}" FontSize="9" Foreground="#6E7681" Margin="1,0,8,0" />
+                                <TextBlock Text="Min: " FontSize="9.5" Foreground="#64748B" />
+                                <TextBlock Text="{Binding GpuStats.Min, StringFormat='{}{0:0.#}'}" FontSize="9.5" FontWeight="Bold" Foreground="#E2E8F0" />
+                                <TextBlock Text="{Binding MetricUnit}" FontSize="8.5" Foreground="#64748B" Margin="1,0,6,0" />
 
-                                <TextBlock Text="Moy: " FontSize="10" Foreground="#6E7681" />
-                                <TextBlock Text="{Binding GpuStats.Average, StringFormat='{}{0:0.#}'}" FontSize="10" FontWeight="Bold" Foreground="#00E676" />
-                                <TextBlock Text="{Binding MetricUnit}" FontSize="9" Foreground="#6E7681" Margin="1,0,8,0" />
+                                <TextBlock Text="Moy: " FontSize="9.5" Foreground="#64748B" />
+                                <TextBlock Text="{Binding GpuStats.Average, StringFormat='{}{0:0.#}'}" FontSize="9.5" FontWeight="Bold" Foreground="{Binding CurrentTheme.GpuBrush}" />
+                                <TextBlock Text="{Binding MetricUnit}" FontSize="8.5" Foreground="#64748B" Margin="1,0,6,0" />
 
-                                <TextBlock Text="Max: " FontSize="10" Foreground="#6E7681" />
-                                <TextBlock Text="{Binding GpuStats.Max, StringFormat='{}{0:0.#}'}" FontSize="10" FontWeight="Bold" Foreground="#F85149" />
-                                <TextBlock Text="{Binding MetricUnit}" FontSize="9" Foreground="#6E7681" Margin="1,0,0,0" />
+                                <TextBlock Text="Max: " FontSize="9.5" Foreground="#64748B" />
+                                <TextBlock Text="{Binding GpuStats.Max, StringFormat='{}{0:0.#}'}" FontSize="9.5" FontWeight="Bold" Foreground="#F87171" />
+                                <TextBlock Text="{Binding MetricUnit}" FontSize="8.5" Foreground="#64748B" Margin="1,0,0,0" />
                             </StackPanel>
                         </DockPanel>
                     </Border>
                 </Grid>
 
-                <!-- Row 5: Settings Footer & Elevation Helper -->
+                <!-- Row 5: Settings Footer -->
                 <Grid Grid.Row="5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -413,29 +424,29 @@
 
                     <!-- Opacity Slider & Legend -->
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Opacité" FontSize="10" Foreground="#6E7681" VerticalAlignment="Center" Margin="0,0,6,0" />
-                        <Slider Width="90" Minimum="0.4" Maximum="1.0" Value="{Binding WindowOpacity}" VerticalAlignment="Center" />
-                        <TextBlock Text="{Binding WindowOpacity, StringFormat=' {0:P0}'}" FontSize="10" Foreground="#8B949E" VerticalAlignment="Center" Margin="4,0,12,0" />
+                        <TextBlock Text="Opacité" FontSize="9.5" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <Slider Width="85" Minimum="0.4" Maximum="1.0" Value="{Binding WindowOpacity}" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding WindowOpacity, StringFormat=' {0:P0}'}" FontSize="9.5" Foreground="#94A3B8" VerticalAlignment="Center" Margin="4,0,12,0" />
 
                         <!-- Legend dots -->
-                        <Ellipse Width="8" Height="8" Fill="#00E5FF" Margin="0,0,4,0" VerticalAlignment="Center" />
-                        <TextBlock Text="CPU" FontSize="10" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,10,0" />
-                        <Ellipse Width="8" Height="8" Fill="#00E676" Margin="0,0,4,0" VerticalAlignment="Center" />
-                        <TextBlock Text="GPU" FontSize="10" Foreground="#8B949E" VerticalAlignment="Center" />
+                        <Ellipse Width="7" Height="7" Fill="{Binding CurrentTheme.CpuBrush}" Margin="0,0,4,0" VerticalAlignment="Center" />
+                        <TextBlock Text="CPU" FontSize="9.5" Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <Ellipse Width="7" Height="7" Fill="{Binding CurrentTheme.GpuBrush}" Margin="0,0,4,0" VerticalAlignment="Center" />
+                        <TextBlock Text="GPU" FontSize="9.5" Foreground="#94A3B8" VerticalAlignment="Center" />
                     </StackPanel>
 
-                    <!-- Admin Elevation Prompt (if not elevated and cpu temp is 0) -->
+                    <!-- Admin Elevation button if needed -->
                     <Button Grid.Column="1" 
                             Command="{Binding RestartAsAdminCommand}"
                             Visibility="{Binding CpuTempAvailable, Converter={StaticResource InvBoolToVis}}"
                             Background="#2E1C0A" BorderBrush="#D29922" BorderThickness="1"
-                            Padding="8,3" Cursor="Hand">
+                            Padding="7,2" Cursor="Hand">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="🛡️" FontSize="10" Margin="0,0,4,0" />
-                                        <TextBlock Text="Activer sonde CPU (Admin)" FontSize="10" FontWeight="SemiBold" Foreground="#E3B341" />
+                                        <TextBlock Text="🛡️" FontSize="9.5" Margin="0,0,4,0" />
+                                        <TextBlock Text="Mode Admin" FontSize="9.5" FontWeight="SemiBold" Foreground="#E3B341" />
                                     </StackPanel>
                                 </Border>
                             </ControlTemplate>
@@ -444,6 +455,59 @@
                 </Grid>
 
             </Grid>
+
+            <!-- =================================================================== -->
+            <!-- 3. THEME SELECTION POPUP (Triggered by Cogwheel ⚙)                   -->
+            <!-- =================================================================== -->
+            <Popup IsOpen="{Binding IsThemeMenuOpen}" 
+                   StaysOpen="False" 
+                   AllowsTransparency="True" 
+                   Placement="MousePoint">
+                <Border Background="#0F172A" BorderBrush="{Binding CurrentTheme.BorderBrush}" BorderThickness="1.2" CornerRadius="10" Padding="8" Margin="0,4,0,0">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="3" Direction="270" Color="#000000" Opacity="0.8" />
+                    </Border.Effect>
+                    <StackPanel Width="180">
+                        <TextBlock Text="🎨 THÈMES DE COULEURS" FontSize="9" FontWeight="Bold" Foreground="#64748B" Margin="4,2,0,6" />
+                        <ItemsControl ItemsSource="{Binding Themes}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.SelectThemeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="6,5"
+                                            Margin="0,1"
+                                            Cursor="Hand"
+                                            HorizontalContentAlignment="Stretch">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter />
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#1E293B" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                        <DockPanel>
+                                            <TextBlock Text="{Binding Icon}" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                            <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#E2E8F0" VerticalAlignment="Center" />
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                <Ellipse Width="8" Height="8" Fill="{Binding CpuBrush}" Margin="0,0,3,0" />
+                                                <Ellipse Width="8" Height="8" Fill="{Binding GpuBrush}" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Popup>
+
         </Grid>
     </Border>
 </Window>
